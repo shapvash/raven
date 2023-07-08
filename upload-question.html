@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Raven 수학풀이 솔루션</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .upload-container {
+            display: flex;
+            justify-content: flex-start;
+            gap: 50px;
+        }
+        .upload-box {
+            width: 300px;
+        }
+        .upload-section {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #aaa;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .upload-section img {
+            max-width: 300px;
+            max-height: 200px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .latex-display {
+            width: 300px;
+            height: 200px;
+            border: 1px solid #aaa;
+            margin-bottom: 10px;
+            overflow: auto;
+            padding: 5px;
+        }
+        .latex-code {
+            width: 300px;
+            border: 1px solid #aaa;
+            overflow: auto;
+            padding: 5px;
+            height: 100px;
+            font-family: monospace;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <h1>Raven 수학풀이 솔루션</h1>
+    <div class="upload-container">
+        <div class="upload-box">
+            <h2>문제</h2>
+            <div id="upload1" class="upload-section"></div>
+            <div class="button-container">
+                <input type="file" id="problem" class="file-input" accept="image/*">
+            </div>
+        </div>
+
+        <div class="upload-box">
+            <h2>학생 풀이</h2>
+            <div id="upload2" class="upload-section"></div>
+            <div class="button-container">
+                <input type="file" id="student_solution" class="file-input" accept="image/*">
+            </div>
+            
+        </div>
+    </div>
+
+    <button id="processButton"disabled>확인</button>
+
+
+    <div class="upload-container">
+        <div class="upload-box">
+            <h2>문제</h2>
+            <div id="latexDisplay1" class="latex-display"></div>
+            <textarea id="latexCode1" class="latex-code"></textarea>
+        </div>
+
+        <div class="upload-box">
+            <h2>학생 풀이</h2>
+            <div id="latexDisplay2" class="latex-display"></div>
+            <textarea id="latexCode2" class="latex-code"></textarea>
+        </div>
+    </div>
+
+    <button id="diagnosisButton"disabled>진단</button>
+
+
+
+
+
+    <script>
+        var idMap = {
+            'problem': 'upload1',
+            'student_solution': 'upload2'
+        };
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInputs = document.querySelectorAll('.file-input');
+            fileInputs.forEach((input) => {
+                input.addEventListener('change', handleFileChange);
+            });
+        });
+
+        function handleFileChange(event) {
+            const file = event.currentTarget.files[0];
+            if (file) {
+                showPreview(event, file, idMap[event.currentTarget.id]);
+                checkAllImagesUploaded();
+            }
+        }
+
+
+
+
+        function showPreview(event, file, targetId) {
+            event.preventDefault();
+            const uploadSection = document.getElementById(targetId);
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                uploadSection.innerHTML = '';
+                uploadSection.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function checkAllImagesUploaded() {
+            const fileInputs = document.querySelectorAll('.file-input');
+            let allImagesUploaded = true;
+
+            fileInputs.forEach((input) => {
+                if (!input.files.length) {
+                    allImagesUploaded = false;
+                }
+            });
+            if (allImagesUploaded) {
+                document.getElementById('processButton').disabled = false;
+            }
+        }
+
+        document.getElementById('processButton').addEventListener('click', () => {
+            const problemFile = document.getElementById('problem').files[0];
+            const studentSolutionFile = document.getElementById('student_solution').files[0];
+
+            const formData = new FormData();
+            formData.append('file', problemFile);
+            formData.append('options_json', JSON.stringify({
+                 
+                "rm_spaces": true
+            }));
+
+            axios.post('https://api.mathpix.com/v3/text', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'app_id': 'hk213_kaist_ac_kr_b0091e',
+                    'app_key': '3f4c39aabe289db0400ef8cecc86505c3bbac14691cf6d8bdefc6ad58d4a4085'
+                }
+            })
+            .then(function (response) {
+                // Use the response (containing LaTeX) here...
+                const processedText = response.data.text.replace(/\n/g, '<br />');
+                document.getElementById('latexCode1').textContent = response.data.text;
+                document.getElementById('latexDisplay1').innerHTML = response.data.text;
+
+                // Repeat the process for the student_solution file
+                const formData2 = new FormData();
+                formData2.append('file', studentSolutionFile);
+                formData2.append('options_json', JSON.stringify({
+                    
+                    "rm_spaces": false
+                }));
+
+                return axios.post('https://api.mathpix.com/v3/text', formData2, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'app_id': 'hk213_kaist_ac_kr_b0091e',
+                        'app_key': '3f4c39aabe289db0400ef8cecc86505c3bbac14691cf6d8bdefc6ad58d4a4085'
+                    }
+                });
+            })
+            .then(function (response) {
+                // Use the response (containing LaTeX) here...
+                const processedText = response.data.text.replace(/\n/g, '<br />');
+                document.getElementById('latexCode2').textContent = processedText;
+                document.getElementById('latexDisplay2').innerHTML = processedText;
+
+                // Enable the diagnosisButton after images are processed
+                document.getElementById('diagnosisButton').disabled = false;
+
+                // Rerun the MathJax typesetting process
+                MathJax.typesetPromise();
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        });
+
+
+
+        document.getElementById('latexCode1').addEventListener('input', function (event) {
+            document.getElementById('latexDisplay1').innerHTML = event.target.value;
+            MathJax.typesetPromise(); // Re-render the LaTeX
+        });
+
+        document.getElementById('latexCode2').addEventListener('input', function (event) {
+            document.getElementById('latexDisplay2').innerHTML = event.target.value;
+            MathJax.typesetPromise(); // Re-render the LaTeX
+        });
+
+
+
+
+
+
+
+
+        document.getElementById('diagnosisButton').addEventListener('click', () => {
+            // Save the LaTeX code to local storage
+            localStorage.setItem('latexCode1', document.getElementById('latexCode1').textContent);
+            localStorage.setItem('latexCode2', document.getElementById('latexCode2').textContent);
+
+            // Redirect to solution.html
+            window.location.href = 'result.html';
+        });
+
+
+    </script>
+</body>
+</html>

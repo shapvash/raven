@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .latex-box {
+            border: 2px solid #aaa;
+            padding: 5px;
+            margin-bottom: 10px;
+            width: 500px;
+            border-radius: 5px;
+            display: block;
+            overflow: auto;
+            font-family: monospace;
+            height: 100px;
+        }
+
+        .latex-box-diagnosis {
+            border: 2px solid #aaa;
+            padding: 5px;
+            margin-bottom: 10px;
+            width: 500px;
+            border-radius: 5px;
+            display: block;
+            overflow: auto;
+            font-family: monospace;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>학습진단</h1>
+
+    <h2>문제</h2>
+    <div id="latexCode1" class="latex-box"></div>
+
+    <h2>학생 풀이</h2>
+    <div id="latexCode2" class="latex-box"></div>
+
+    <h2>풀이 진단</h2>
+    <div id="diagnosis" class="latex-box-diagnosis"></div>
+    <textarea id="latexCodeInput" rows="4" cols="50"></textarea>
+    <button onclick="processLaTeXCode()">Process</button>
+
+    <h2>학습유형 진단</h2>
+    <div id="diagnosis-type" class="latex-box-diagnosis">
+        <p id="diagnosisResult-type"></p>
+    </div>
+
+
+    <script>
+        var diagnosisResultType = document.getElementById("diagnosisResult-type");
+        diagnosisResultType.textContent = "학생의 풀이를 보면, 일부 개념을 이해하지 못하고 문제 유형을 외우는 체화형 학습 방식을 사용한 것으로 보입니다. \n\n체화형 학습 방식은 문제 유형과 풀이 방식을 외우고, 이를 반복적으로 사용하여 문제를 해결하는 방식입니다. 이러한 학습 방식은 문제 유형에 익숙해지고 반복적인 연습을 통해 문제를 빠르게 해결할 수 있는 장점이 있습니다. \n\n하지만, 이러한 학습 방식은 개념을 올바르게 이해하고 응용/적용하는 탐구형 학습 방식에 비해 한계가 있습니다. 체화형 학습 방식은 문제 유형에만 의존하여 문제를 해결하려고 하기 때문에, 새로운 유형의 문제나 응용 문제에 대한 대처력이 부족할 수 있습니다. \n\n따라서, 이 학생은 체화형 학습 방식을 사용하고 있으며, 개념을 올바르게 이해하고 응용/적용하는 탐구형 학습 방식을 강화해야 할 필요가 있습니다. 이를 위해서는 개념을 깊이 이해하고 문제를 다양한 관점에서 접근하여 해결하는 연습이 필요합니다";
+
+
+
+        window.onload = function() {
+            // Retrieve the LaTeX code from local storage
+            const latexCode1 = localStorage.getItem('latexCode1');
+            const latexCode2 = localStorage.getItem('latexCode2');
+
+            // Output the LaTeX code
+            document.getElementById('latexCode1').innerHTML = `\\(${latexCode1}\\)`;
+            document.getElementById('latexCode2').innerHTML = `\\(${latexCode2}\\)`;
+
+            // Update MathJax to re-render the new LaTeX code
+            MathJax.typesetPromise();
+        }
+
+
+
+        function processLaTeXCode() {
+            // Retrieve the LaTeX code from the input box
+            let latexCode = document.getElementById('latexCodeInput').value;
+            const lines = latexCode.split('\\n');
+            console.log(lines)
+            const processedLines = [];
+
+            for (let line of lines) {
+                line = line.replace(/begin{equation}/g, '\\begin{equation}')
+                line = line.replace(/end{equation}/g, '\\end{equation}')
+                line = line.replace(/\\\\/g, '\\');
+                processedLines.push(line);
+            }
+
+            console.log(processedLines)
+
+            // Replace \n with <br/> and spaces with &nbsp;
+            latexCode = processedLines.join(('<br /><br />'));
+
+            // Output the LaTeX code
+            document.getElementById('diagnosis').innerHTML = latexCode;
+
+            // Update MathJax to re-render the new LaTeX code
+            MathJax.typesetPromise();
+        }
+        "2. 학생 풀이: begin{equation} -1 \\leq \\cos x \\leq 1, 0 \\leq \\cos^2 x \\leq 1  end{equation} or begin{equation} 0 end{equation}"
+    </script>
+</body>
+</html>
